@@ -1,0 +1,114 @@
+import React, { useState } from 'react';
+import { Card, CardContent } from "./components/ui/card";
+import { Input } from "./components/ui/input";
+import { Button } from "./components/ui/button";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+
+const RotationLab = () => {
+  const [btcRSI, setBtcRSI] = useState(50);
+  const [fearGreed, setFearGreed] = useState(50);
+  const [btcDominance, setBtcDominance] = useState(50);
+  const [ethWeight, setEthWeight] = useState(40);
+  const [solWeight, setSolWeight] = useState(30);
+  const [xrpWeight, setXrpWeight] = useState(30);
+  const [suggestion, setSuggestion] = useState("");
+
+  const [data, setData] = useState([]);
+  const [weeks, setWeeks] = useState(52);
+  const [initialInvestment, setInitialInvestment] = useState(500);
+
+  const handleCheckRotation = () => {
+    if (btcRSI > 70 && fearGreed > 70 && btcDominance > 50) {
+      setSuggestion("🔴 Market is overheated. Rotate to BTC or USDT to protect gains.");
+    } else if (btcRSI < 30 && fearGreed < 30 && btcDominance < 50) {
+      setSuggestion("🟢 Market is fearful. Rotate into ALTs (ETH, SOL, XRP) based on your weights.");
+    } else {
+      setSuggestion("⚠️ Market is mixed. Hold or rebalance slowly.");
+    }
+  };
+
+  const simulatePortfolio = () => {
+    let portfolio = [];
+    let total = 0;
+    for (let i = 0; i < weeks; i++) {
+      total += initialInvestment;
+      const eth = total * (ethWeight / 100) * (1 + 0.002 * i);
+      const sol = total * (solWeight / 100) * (1 + 0.003 * i);
+      const xrp = total * (xrpWeight / 100) * (1 + 0.0015 * i);
+      const combined = eth + sol + xrp;
+      portfolio.push({ week: i + 1, value: combined });
+    }
+    setData(portfolio);
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      <h1 className="text-3xl font-bold">📊 RotationLab Dashboard</h1>
+
+      <Card>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4">
+          <div>
+            <label className="font-medium">BTC RSI</label>
+            <Input type="number" value={btcRSI} onChange={(e) => setBtcRSI(Number(e.target.value))} />
+          </div>
+          <div>
+            <label className="font-medium">Fear & Greed Index</label>
+            <Input type="number" value={fearGreed} onChange={(e) => setFearGreed(Number(e.target.value))} />
+          </div>
+          <div>
+            <label className="font-medium">BTC Dominance (%)</label>
+            <Input type="number" value={btcDominance} onChange={(e) => setBtcDominance(Number(e.target.value))} />
+          </div>
+          <div>
+            <label className="font-medium">ETH Weight (%)</label>
+            <Input type="number" value={ethWeight} onChange={(e) => setEthWeight(Number(e.target.value))} />
+          </div>
+          <div>
+            <label className="font-medium">SOL Weight (%)</label>
+            <Input type="number" value={solWeight} onChange={(e) => setSolWeight(Number(e.target.value))} />
+          </div>
+          <div>
+            <label className="font-medium">XRP Weight (%)</label>
+            <Input type="number" value={xrpWeight} onChange={(e) => setXrpWeight(Number(e.target.value))} />
+          </div>
+          <div>
+            <label className="font-medium">Weekly Investment ($)</label>
+            <Input type="number" value={initialInvestment} onChange={(e) => setInitialInvestment(Number(e.target.value))} />
+          </div>
+          <div>
+            <label className="font-medium">Weeks</label>
+            <Input type="number" value={weeks} onChange={(e) => setWeeks(Number(e.target.value))} />
+          </div>
+          <Button className="col-span-full" onClick={handleCheckRotation}>Check Rotation Suggestion</Button>
+          <Button className="col-span-full" onClick={simulatePortfolio}>Simulate Portfolio</Button>
+        </CardContent>
+      </Card>
+
+      {suggestion && (
+        <Card>
+          <CardContent className="p-4 text-xl font-semibold text-center">
+            {suggestion}
+          </CardContent>
+        </Card>
+      )}
+
+      {data.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <h2 className="text-lg font-semibold mb-2">📈 Simulated Portfolio Value</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={data}>
+                <XAxis dataKey="week" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default RotationLab;
